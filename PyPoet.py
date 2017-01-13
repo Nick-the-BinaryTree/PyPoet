@@ -1,7 +1,7 @@
 import nltk
 import pronouncing
 import sys
-import urllib.request
+from urllib.request import Request, urlopen
 from random import randint
 
 def getRhymes(word):
@@ -15,7 +15,8 @@ def isRhyme(word1, word2, rhymes):
 
 def getSentences(fileName):
     if fileName[:4] == "http":
-        data = urllib.request.urlopen(fileName).read().decode('utf-8')
+        req = Request(fileName, headers={'User-Agent': 'Mozilla/5.0'})
+        data = urlopen(req).read().decode('utf-8', errors="replace")
     else:
         fp = open(fileName)
         data = fp.read()
@@ -28,20 +29,17 @@ def getSentences(fileName):
 def isBase(foundCount):
     return foundCount % 2 == 0
 
-def cleanQuotes(s):
-    if s[0] == '"':
-        s = s[1:]
-    if s[-1] == '"':
-        s = s[:-1]
-    return s
+def clean(s):
+    s = s.rstrip('?:!.,;"\'')
+    return s.lstrip('?:!.,;"\'')
 
 def getLastWord(sen):
     lastWord = sen.split()[-1]
-    lastWord = cleanQuotes(lastWord)
-    lastWord = lastWord[:-1]  # final punctuation
+    lastWord = clean(lastWord)
     return lastWord.lower()
 
 def senChecks(sen, rhymeWith, foundCount, SENTENCE_LENGTH, SENTENCE_THRESHOLD, RHYMES_THRESHOLD = 3):
+
     fitsLength = SENTENCE_LENGTH - SENTENCE_THRESHOLD <= len(sen.split()) \
            <= SENTENCE_LENGTH + SENTENCE_THRESHOLD
     lastWord = getLastWord(sen)
@@ -70,7 +68,7 @@ def buildPoem(sentences, START_INDEX, TOTAL_LINES, SENTENCE_LENGTH, SENTENCE_TAR
             foundCount += 1
             lastWord = getLastWord(sen)
             print("Last Word: " + lastWord)
-            final += cleanQuotes("".join(sen)) + "\n"
+            final += clean("".join(sen)) + "\n"
             if isBase(foundCount):
                 final+="\n"
 
@@ -110,6 +108,14 @@ def main():
                 print("Also, they all must be integers.")
 
         try:
+            if START_INDEX < 0:
+                START_INDEX = 0
+            if TOTAL_LINES < 0:
+                TOTAL_LINES = 0
+            if SENTENCE_LENGTH < 0:
+                SENTENCE_LENGTH = 0
+            if SENTENCE_THRESHOLD < 0:
+                SENTENCE_THRESHOLD = 0
             print("File location: " + sys.argv[1])
             print("Start index: " + str(START_INDEX))
             print("Total poem lines: " + str(TOTAL_LINES))
