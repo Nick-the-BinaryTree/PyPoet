@@ -108,8 +108,6 @@ def main():
                 print("Also, they all must be integers.")
 
         try:
-            if START_INDEX < 0:
-                START_INDEX = 0
             if TOTAL_LINES < 0:
                 TOTAL_LINES = 0
             if SENTENCE_LENGTH < 0:
